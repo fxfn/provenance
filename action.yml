@@ -1,0 +1,54 @@
+name: 'Record Provenance'
+description: 'Records image build provenance to a REST API, linking image digests to GitHub commits via OIDC.'
+author: 'fxfn'
+
+branding:
+  icon: 'anchor'
+  color: 'blue'
+
+inputs:
+  digests:
+    description: >
+      Image digests to record provenance for. Accepts the output of
+      docker/build-push-action's `digest` output, or a newline/comma-separated
+      list of digests (e.g. sha256:abc123).
+    required: true
+  image:
+    description: >
+      Fully qualified image name (e.g. ghcr.io/org/app).
+    required: true
+  tags:
+    description: >
+      Image tags associated with this build. Accepts the output of
+      docker/metadata-action's `tags` output (newline-separated).
+    required: false
+    default: ''
+  environment:
+    description: >
+      The target deployment environment (e.g. production, staging, preview).
+    required: false
+    default: ''
+  api-url:
+    description: >
+      REST API base URL. Override for self-hosted or local development.
+    required: true
+  write-summary:
+    description: >
+      Write a job summary with details of the provenance record (image, digests,
+      tags, commit). Defaults to true.
+    required: false
+    default: 'true'
+  fail-on-error:
+    description: >
+      Fail the build if provenance recording fails. Defaults to false (soft-fail).
+      Set to true for compliance-gated deployments where provenance is mandatory.
+    required: false
+    default: 'false'
+
+outputs:
+  provenance-id:
+    description: 'The ID of the created provenance record.'
+
+runs:
+  using: node24
+  main: dist/index.js
