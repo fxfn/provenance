@@ -250,8 +250,10 @@ Users reference the action by tag, so every release needs at least one tag. The 
    ```bash
    npm run build
    git add dist/ src/ action.yml package.json
-   git commit -m "Release v1.2.3"
+   git commit -m "fix: describe the change in imperative mood"
    ```
+
+   Use [Conventional Commits](https://www.conventionalcommits.org/) without a scope (`feat:`, `fix:`, `chore:`, etc.). Do not use `Release v1.2.3` as the commit message — the version is recorded in `package.json` and git tags.
 
 2. Create the immutable version tag and move the floating major tag:
 
