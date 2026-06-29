@@ -58734,48 +58734,30 @@ async function writeSummary(state) {
             .write();
         return;
     }
-    const { provenanceId, payload, apiUrl } = state;
+    const { payload } = state;
     const shortCommit = payload.commit.slice(0, 7);
     const repoUrl = `https://github.com/${payload.repo}`;
     const commitUrl = `${repoUrl}/commit/${payload.commit}`;
     const runUrl = `${repoUrl}/actions/runs/${payload.runId}`;
-    const provenanceUrl = `${apiUrl}/provenance/${provenanceId}`;
-    const digestRows = payload.digests.map((d) => [
-        `<code>${d}</code>`,
-        `<a href="${provenanceUrl}">View in DeployKit →</a>`,
-    ]);
-    const tagRows = payload.tags.length > 0
-        ? payload.tags.map((t) => [`<code>${t}</code>`])
-        : [["<em>none</em>"]];
+    const digestsCell = payload.digests
+        .map((d) => `<code>${d}</code>`)
+        .join("<br>");
+    const tagsCell = payload.tags.length > 0
+        ? payload.tags.map((t) => `<code>${t}</code>`).join("<br>")
+        : "<em>none</em>";
     await core.summary
         .addHeading("✅ DeployKit — Provenance Recorded", 2)
-        .addRaw(`Provenance for **${payload.image}** has been recorded in [DeployKit](${provenanceUrl}).`)
+        .addRaw(`Provenance for <code>${payload.image}</code> has been recorded.`)
         .addEOL()
-        .addHeading("Image", 3)
+        .addHeading("Build details", 3)
         .addTable([
         [
             { data: "Field", header: true },
             { data: "Value", header: true },
         ],
-        ["Image", `<code>${payload.image}</code>`],
         ["Environment", payload.environment || "<em>not set</em>"],
-    ])
-        .addHeading("Digests", 3)
-        .addTable([
-        [
-            { data: "Digest", header: true },
-            { data: "DeployKit", header: true },
-        ],
-        ...digestRows,
-    ])
-        .addHeading("Tags", 3)
-        .addTable([[{ data: "Tag", header: true }], ...tagRows])
-        .addHeading("Build context", 3)
-        .addTable([
-        [
-            { data: "Field", header: true },
-            { data: "Value", header: true },
-        ],
+        ["Digests", digestsCell],
+        ["Tags", tagsCell],
         ["Commit", `<a href="${commitUrl}"><code>${shortCommit}</code></a>`],
         ["Branch", `<code>${payload.branch}</code>`],
         ["Triggered by", `<code>${payload.triggeredBy}</code>`],

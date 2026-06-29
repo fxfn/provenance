@@ -1,6 +1,6 @@
 {
 	"name": "@fxfn/provenance",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Action to record image build provenance",
 	"main": "dist/index.js",
 	"scripts": {
