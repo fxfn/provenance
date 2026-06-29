@@ -15,7 +15,7 @@ Authentication uses GitHub Actions [OIDC](https://docs.github.com/en/actions/dep
     tags: ${{ steps.meta.outputs.tags }}
 
 - name: Record provenance
-  uses: deploykit-io/record-provenance@v1
+  uses: fxfn/provenance@v1
   with:
     image: ghcr.io/${{ github.repository }}
     digests: ${{ steps.push.outputs.digest }}
@@ -271,7 +271,7 @@ Users reference the action by tag, so every release needs at least one tag. The 
 Users then pin to the major line and automatically receive patch and minor updates:
 
 ```yaml
-uses: deploykit-io/record-provenance@v1
+uses: fxfn/provenance@v1
 ```
 
 > **Note:** The repository must be **public** to be usable from other public repositories. Private repositories can only use the action from within the same repository or organisation (depending on your Actions sharing settings).
