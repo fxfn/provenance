@@ -39,38 +39,33 @@ Use [Conventional Commits](https://www.conventionalcommits.org/) **without a sco
 | docs-only | `docs` |
 | tooling / version bump only | `chore` |
 
-Examples:
-
-```
-fix: remove deploykit links from job summary
-feat: add environment input to provenance payload
-chore: bump version to 1.0.2
-```
-
 The release version lives in `package.json` and git tags — not in the commit subject.
 
-### Approve before committing
+### Ask the user to choose a commit message
 
-**Do not commit until the user approves the message.**
+**Do not commit until the user selects or enters a message.**
 
 1. Run `git diff` (and `git diff --cached` if anything is already staged) to understand what changed.
-2. Draft a semantic commit subject (and optional body) that summarizes the release changes.
-3. Present the proposed message to the user and ask for confirmation, for example:
+2. Draft **2–3 semantic commit messages** that accurately describe the release (vary wording or emphasis if useful).
+3. Use the **AskQuestion** tool to present those options plus **Other** for a custom message.
 
-   > Proposed commit message:
-   >
-   > ```
-   > fix: condense job summary into single build details table
-   > ```
-   >
-   > OK to commit with this message, or would you like to change it?
+Example AskQuestion setup:
 
-4. **Wait for the user's response** before running `git commit`.
-5. If the user approves, commit with the proposed message.
-6. If the user provides a different message, use their message instead.
-7. If the user rejects without a replacement, revise the draft and ask again — do not commit yet.
+```text
+Question id: commit-message
+Prompt: Which commit message should be used for this release?
 
-Only proceed to tagging and pushing after the commit succeeds and the user has asked to push (if applicable).
+Options (use the full message as each option label):
+  - fix: condense job summary into single build details table
+  - fix: remove deploykit links and simplify job summary layout
+  - chore: rebuild dist for v1.0.2
+  - Other
+```
+
+4. **Wait for the user's answer** before running `git commit`.
+5. If the user picks a predefined option, commit with that exact string.
+6. If the user picks **Other**, ask them to provide their message (or use a follow-up AskQuestion / chat reply), then commit with what they supply.
+7. If none of the drafts fit, revise the options and ask again — do not commit yet.
 
 ## Tag convention
 
@@ -83,9 +78,11 @@ Every release needs **two** tags on the same commit:
 
 Example for `1.0.2`: create `v1.0.2`, then `git tag -f v1`.
 
+If `vX.Y.Z` already exists on a different commit, **stop** and tell the user — do not move immutable tags.
+
 ## Release workflow
 
-Replace `X.Y.Z` with the target version (without the `v` prefix in `package.json`; with `v` in git tags).
+Replace `X.Y.Z` with the target version (`package.json` has no `v` prefix; git tags include `v`).
 
 ```bash
 # 1. Bump version in package.json, then rebuild
@@ -95,37 +92,38 @@ npm run build
 # 2. Stage changes
 git add dist/ src/ action.yml package.json
 
-# 3. Draft commit message from the diff, present to user, and wait for approval
-#    (see "Approve before committing" above — do not run git commit yet)
+# 3. Ask user to choose commit message (AskQuestion) — do not commit yet
 
+# 4. Commit with the user's chosen message
 git commit -m "$(cat <<'EOF'
-<user-approved message>
+<user-selected message>
 EOF
 )"
 
-# 4. Tag
-git tag -a vX.Y.Z -m "vX.Y.Z"
+# 5. Tag (create or update floating major only)
+git tag -a vX.Y.Z -m "vX.Y.Z"    # skip if tag already exists on this commit
 git tag -f vX
 
-# 5. Push (only when the user explicitly asks to push)
+# 6. Push commit and tags
 git push origin main
-git push origin vX.Y.Z
-git push -f origin vX
+git push origin vX.Y.Z           # omit if that immutable tag was already pushed
+git push -f origin vX            # always force-push the floating major tag
 ```
+
+After the user selects a commit message, run steps 4–6 without asking again unless push fails.
 
 ## Git safety
 
 - **Never** force-push `main` or `master`
 - **Only** force-push the floating major tag (`v1`, `v2`, …)
-- Do not create the release commit until the user approves the commit message
-- Do not push unless the user asked
+- Do not commit until the user selects or enters a commit message
 - Do not skip hooks (`--no-verify`) unless the user explicitly requests it
 
 ## Verify after push
 
 ```bash
 git status                    # clean working tree
-git log -1 --oneline          # semantic commit subject
+git log -1 --oneline          # matches user-selected commit message
 git show vX --no-patch        # floating tag points at release commit
 git tag -l 'v*'               # vX.Y.Z and vX both exist
 ```
